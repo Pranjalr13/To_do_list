@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>To-Do List</title>
+
+  <!-- CSS Styles -->
+  <style>
+    /* ---------- CSS VARIABLES (THEME COLORS) ---------- */
+    :root {
+      --primary: #4f7df9;       /* Accent color for header text */
+      --bg-color: #D89F55;      /* Page background (warm golden brown) */
+      --card-bg: #fffaf0;       /* Main container background (ivory) */
+      --button-bg: #f7f7f7;     /* Button background (powder gray) */
+      --border: #d0b38a;        /* Light brown for borders */
+      --text-main: #2b2b2b;     /* Main text color */
+      --text-muted: #7a7a7a;    /* Muted gray for optional text */
+      --completed: #a0a0a0;     /* Text color for completed tasks */
+    }
+
+    /* ---------- BASE BODY STYLE ---------- */
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-color); /* Background color */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    /* ---------- CONTAINER (CARD) ---------- */
+    .container {
+      background: var(--card-bg);
+      padding: 30px 25px;
+      border-radius: 14px;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.1); /* Soft shadow */
+      width: 90%;
+      max-width: 420px;
+      border: 1px solid var(--border);
+    }
+
+    /* ---------- HEADER ---------- */
+    h1 {
+      text-align: center;
+      color: var(--primary);
+      font-weight: 600;
+      margin-bottom: 25px;
+    }
+
+    /* ---------- FORM ---------- */
+    form {
+      display: flex;
+      margin-bottom: 20px;
+    }
+
+    /* ---------- INPUT FIELD ---------- */
+    #task-input {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px 0 0 8px;
+      outline: none;
+      background: #fff;
+      color: var(--text-main);
+      font-size: 1rem;
+    }
+
+    /* ---------- ADD BUTTON ---------- */
+    button {
+      padding: 12px 20px;
+      background-color: var(--button-bg);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      border-radius: 0 8px 8px 0;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    /* Hover effect on buttons */
+    button:hover {
+      background-color: #e0e0e0;
+    }
+
+    /* ---------- TASK LIST ---------- */
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    /* ---------- INDIVIDUAL TASK ITEM ---------- */
+    li {
+      background: #fefefe;
+      padding: 12px 14px;
+      border-radius: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
+      transition: 0.3s ease;
+    }
+
+    /* ---------- COMPLETED TASK STYLE ---------- */
+    li.completed {
+      text-decoration: line-through;
+      color: var(--completed);
+      background: #f4f1eb;
+    }
+
+    /* ---------- TASK TEXT ---------- */
+    li span {
+      flex: 1;
+      cursor: pointer;
+    }
+
+    /* ---------- DELETE BUTTON IN TASK ---------- */
+    li button {
+      background: var(--button-bg);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background-color 0.2s;
+    }
+
+    li button:hover {
+      background: #e0e0e0;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- MAIN TO-DO APP CONTAINER -->
+  <div class="container">
+    <!-- App Title -->
+    <h1>📝 My To-Do List</h1>
+
+    <!-- Task Input Form -->
+    <form id="task-form">
+      <!-- Text Input for New Task -->
+      <input type="text" id="task-input" placeholder="What do you need to do?" required />
+      <!-- Add Button -->
+      <button type="submit">Add</button>
+    </form>
+
+    <!-- Task List Container -->
+    <ul id="task-list"></ul>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // DOM Elements
+    const taskForm = document.getElementById("task-form");
+    const taskInput = document.getElementById("task-input");
+    const taskList = document.getElementById("task-list");
+
+    // Load saved tasks from local storage, or initialize empty list
+    let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+    // Save tasks to local storage
+    function saveTasks() {
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+    }
+
+    // Render tasks on the screen
+    function renderTasks() {
+      taskList.innerHTML = ""; // Clear existing tasks
+
+      // Loop through each task and create list item
+      tasks.forEach((task, index) => {
+        const li = document.createElement("li");
+        li.className = task.completed ? "completed" : "";
+
+        // Task content and delete button
+        li.innerHTML = `
+          <span onclick="toggleTask(${index})">${task.text}</span>
+          <button onclick="deleteTask(${index})">Delete</button>
+        `;
+
+        // Add to the list
+        taskList.appendChild(li);
+      });
+    }
+
+    // Handle form submit: add new task
+    taskForm.addEventListener("submit", function (e) {
+      e.preventDefault(); // Prevent page reload
+      const text = taskInput.value.trim(); // Get input text
+      if (text) {
+        tasks.push({ text, completed: false }); // Add task
+        saveTasks();                            // Save to storage
+        renderTasks();                          // Update UI
+        taskInput.value = "";                   // Clear input
+      }
+    });
+
+    // Toggle task complete/incomplete
+    function toggleTask(index) {
+      tasks[index].completed = !tasks[index].completed;
+      saveTasks();
+      renderTasks();
+    }
+
+    // Delete a task
+    function deleteTask(index) {
+      tasks.splice(index, 1); // Remove 1 task at position `index`
+      saveTasks();
+      renderTasks();
+    }
+
+    // Initial render
+    renderTasks();
+  </script>
+</body>
+</html>
